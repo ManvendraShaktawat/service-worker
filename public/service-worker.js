@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = "cache-v1";
+const CACHE_NAME = "v1";
 
 const staticAssetsToCache = [
   "/index.html",
@@ -8,9 +8,11 @@ const staticAssetsToCache = [
   "/static/js/main.482f623a.js",
 ];
 
-// Install event - Pre-cache the static assets (only runs once)
+// Install event for static assets
+// only runs once when SW is not already registered, and we start the server and load the page
 self.addEventListener("install", (event) => {
   console.log("Install Event");
+  // event.waitUntil ensures that the service worker won't be considered installed until the cache is set up
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -25,9 +27,29 @@ self.addEventListener("install", (event) => {
   );
 });
 
+self.addEventListener("activate", (event) => {
+  console.log("Activate Event");
+  // This event is fired after the service worker is installed
+  // It’s a good place to clean up old caches if needed.
+
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (![CACHE_NAME].includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
 // Fetch event - Dynamic caching for image assets
+// Cache-first caching strategy
 self.addEventListener("fetch", (event) => {
   const requestUrl = new URL(event.request.url);
+  // we can also use regex below like "pathname.match(/\.jpeg$/)"
   if (requestUrl.pathname.endsWith(".jpeg")) {
     console.log("Handling JPEG request:", requestUrl.pathname);
 
