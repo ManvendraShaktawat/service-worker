@@ -33,6 +33,8 @@
 
         4. Periodic Sync: This allows you to run periodic background tasks even if the app isn't open.
 
+        5. Offline mode: Currently the offline mode is not working, needs debugging
+
 
     Additional notes:
 
